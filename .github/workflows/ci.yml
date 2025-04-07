@@ -1,0 +1,42 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    # Paso 1: Configura el entorno (ejemplo para Java con Maven)
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+    
+    # Paso 2: Compilación del código
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+      
+    # Paso 3: Ejecución de pruebas unitarias
+    - name: Run unit tests
+      run: mvn test
+      
+    # Paso 4: Análisis estático con SonarQube
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      
+    # Paso opcional: Subir resultados de cobertura
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
